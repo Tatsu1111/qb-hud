@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>mystic-hud</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quasar@2.0.4/dist/quasar.prod.css">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/quasar@2.0.4/dist/quasar.umd.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <div id="container">
+        <div id="playerhud" v-show="show">
+            <div id="mainbars" v-if="showHealth">
+                <q-linear-progress size="25px" :value="health" color="health" track-color="health2" />
+            </div>
+            <div id="mainbars" v-if="showArmor">
+                <q-linear-progress size="25px" :value="armor" color="armor" track-color="armor2" />
+            </div>
+            <div id="bar">
+                <div class="smallbar" v-if="showHunger">
+                    <q-linear-progress size="15px" :value="hunger" color="hunger" track-color="hunger2" />
+                </div>
+                <div class="smallbar" v-if="showThirst">
+                    <q-linear-progress size="15px" :value="thirst" color="thirst" track-color="thirst2" />
+                </div>
+                <div class="smallbar" v-if="showStress">
+                    <q-linear-progress size="15px" :value="stress" color="stress" track-color="stress2" />
+                </div>
+                <div class="smallbar" v-if="showVoice">
+                    <q-linear-progress size="15px" :value="voice" :style="{color: talkingColor}" track-color="voice2" />
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
