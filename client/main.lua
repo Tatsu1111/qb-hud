@@ -107,7 +107,7 @@ end
 CreateThread(function()
     while true do
         local ped = PlayerPedId()
-        local Wait = GetEffectInterval(stress)
+        local wait = GetEffectInterval(stress)
         if stress >= 100 then
             local ShakeIntensity = GetShakeIntensity(stress)
             local FallRepeat = math.random(2, 4)
@@ -134,7 +134,7 @@ CreateThread(function()
             ShakeGameplayCam('SMALL_EXPLOSION_SHAKE', ShakeIntensity)
             SetFlash(0, 0, 500, 2500, 500)
         end
-        Wait(Wait)
+        Wait(wait)
     end
 end)
 
