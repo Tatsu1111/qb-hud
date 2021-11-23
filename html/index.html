@@ -5,6 +5,7 @@
     <title>mystic-hud</title>
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quasar@2.0.4/dist/quasar.prod.css">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css">
     <link rel="stylesheet" href="style.css">
 
     <!-- JavaScript -->
@@ -14,26 +15,56 @@
 </head>
 
 <body>
-    <div id="container">
-        <div id="playerhud" v-show="show">
-            <div id="mainbars" v-if="showHealth">
-                <q-linear-progress size="25px" :value="health" color="health" track-color="health2" />
+    <div id="main-container">
+        <div id="money-container">
+            <div id="money-cash">
+                <transition name="slide-fade">
+                    <p v-if="showCash">💰&nbsp;<span id="money">{{formatMoney(cash)}}</span></p>
+                </transition>
             </div>
-            <div id="mainbars" v-if="showArmor">
-                <q-linear-progress size="25px" :value="armor" color="armor" track-color="armor2" />
+            <div id="money-bank">
+                <transition name="slide-fade">
+                    <p v-if="showBank">🏦&nbsp;<span id="money">{{formatMoney(bank)}}</span></p>
+                </transition>
             </div>
-            <div id="bar">
-                <div class="smallbar" v-if="showHunger">
-                    <q-linear-progress size="15px" :value="hunger" color="hunger" track-color="hunger2" />
+            <div id="money-change" v-if="showUpdate">
+                <p v-if="plus" id="money">+&nbsp;<span id="money">{{formatMoney(amount)}}</span></p>
+                <p v-else-if="minus" id="minus">-&nbsp;<span id="money-minus">{{formatMoney(amount)}}</span></p>
+            </div>
+        </div>
+        <div id="ui-container">
+            <div id="playerhud" v-show="show">
+                <div id="mainbar" v-if="showHealth">
+                    <q-linear-progress size="25px" :value="health" color="health" />
                 </div>
-                <div class="smallbar" v-if="showThirst">
-                    <q-linear-progress size="15px" :value="thirst" color="thirst" track-color="thirst2" />
+                <div id="mainbar" v-if="showArmor">
+                    <q-linear-progress size="25px" :value="armor" color="armor" />
                 </div>
-                <div class="smallbar" v-if="showStress">
-                    <q-linear-progress size="15px" :value="stress" color="stress" track-color="stress2" />
+                <div id="bar">
+                    <div class="smallbar" v-if="showHunger">
+                        <q-linear-progress size="15px" show-value :value="hunger" color="hunger" />
+                    </div>
+                    <div class="smallbar" v-if="showThirst">
+                        <q-linear-progress size="15px" show-value :value="thirst" color="thirst" />
+                    </div>
+                    <div class="smallbar" v-if="showStress">
+                        <q-linear-progress size="15px" show-value :value="stress" color="stress" />
+                    </div>
+                    <div class="smallbar" v-if="showVoice">
+                        <q-linear-progress size="15px" show-value :value="voice" :style="{color: talkingColor}" />
+                    </div>
                 </div>
-                <div class="smallbar" v-if="showVoice">
-                    <q-linear-progress size="15px" :value="voice" :style="{color: talkingColor}" track-color="voice2" />
+            </div>
+        </div>
+        <div id="veh-container">
+            <div v-show="show">
+                <div class="ui-car-seatbelt"><span class="seatbelt-text" :style="{color: seatbeltColor}">SEATBELT</span></div>
+                <div class="ui-car-cruise"><span class="cruise-text" :style="{color: cruiseColor}">CRUISE</span></div>
+                <div class="ui-car-speed"><span class="speed-text">{{speed}}</span> <span class="speed-type">MPH</span></div>
+                <div class="ui-car-fuel"><span class="fuel-text">{{fuel}}</span> <span class="fuel-label">FUEL</span></div>
+                <div class="ui-car-nos" v-if="showNos"><span class="nos-text">{{nos}}</span> <span class="nos-label">NOS</span></div>
+                <div class="ui-car-street">
+                    {{direction}} | {{street1}} | {{street2}}
                 </div>
             </div>
         </div>

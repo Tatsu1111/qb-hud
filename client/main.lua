@@ -1,66 +1,239 @@
 local QBCore = exports['qb-core']:GetCoreObject()
-local hunger = 0
-local thirst = 0
-local stress = 0
 
-RegisterNetEvent('hud:client:UpdateNeeds', function(newHunger, newThirst)-- Triggered in qb-core
+local config = Config
+local speedMultiplier = config.UseMPH and 2.23694 or 3.6
+local seatbeltOn = false
+local cruiseOn = false
+local nos = 0
+local stress = 0
+local hunger = 100
+local thirst = 100
+local cashAmount = 0
+local bankAmount = 0
+
+RegisterNetEvent('hud:client:UpdateNeeds', function(newHunger, newThirst) -- Triggered in qb-core
     hunger = newHunger
     thirst = newThirst
 end)
 
-RegisterNetEvent('hud:client:UpdateStress', function(newStress)-- Add this event with adding stress elsewhere
+RegisterNetEvent('hud:client:UpdateStress', function(newStress) -- Add this event with adding stress elsewhere
     stress = newStress
 end)
 
--- Player Hud
+RegisterNetEvent('seatbelt:client:ToggleSeatbelt', function() -- Triggered in smallresources
+    seatbeltOn = not seatbeltOn
+end)
+
+RegisterNetEvent('seatbelt:client:ToggleCruise', function() -- Triggered in smallresources
+    cruiseOn = not cruiseOn
+end)
+
+RegisterNetEvent('hud:client:UpdateNitrous', function(hasNitro, nitroLevel, bool)
+    nos = nitroLevel
+end)
+
+local prevPlayerStats = {nil, nil, nil, nil, nil, nil, nil, nil}
+
+local function updatePlayerHud(data)
+    local shouldUpdate = false
+    for k, v in pairs(data) do
+        if prevPlayerStats[k] ~= v then
+            shouldUpdate = true
+            break
+        end
+    end
+    prevPlayerStats = data
+    if shouldUpdate then
+        SendNUIMessage({
+            action = 'hudtick',
+            show = data[1],
+            health = data[2],
+            armor = data[3],
+            thirst = data[4],
+            hunger = data[5],
+            stress = data[6],
+            voice = data[7],
+            talking = data[8],
+        })
+    end
+end
+
+local prevVehicleStats = {nil, nil, nil, nil, nil, nil, nil, nil, nil, nil}
+
+local function updateVehicleHud(data)
+    local shouldUpdate = false
+    for k, v in pairs(data) do
+        if prevVehicleStats[k] ~= v then shouldUpdate = true break end
+    end
+    prevVehicleStats = data
+    if shouldUpdate then
+        SendNUIMessage({
+            action = 'car',
+            show = data[1],
+            isPaused = data[2],
+            direction = data[3],
+            street1 = data[4],
+            street2 = data[5],
+            seatbelt = data[6],
+            cruise = data[7],
+            speed = data[8],
+            nos = data[9],
+            fuel = data[10],
+        })
+    end
+end
+
+local lastCrossroadUpdate = 0
+local lastCrossroadCheck = {}
+
+local function getCrossroads(player)
+    local updateTick = GetGameTimer()
+    if (updateTick - lastCrossroadUpdate) > 1500 then
+        local pos = GetEntityCoords(player)
+        local street1, street2 = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
+        lastCrossroadUpdate = updateTick
+        lastCrossroadCheck = {GetStreetNameFromHashKey(street1), GetStreetNameFromHashKey(street2)}
+    end
+    return lastCrossroadCheck
+end
+
+local lastFuelUpdate = 0
+local lastFuelCheck = {}
+
+local function getFuelLevel(vehicle)
+    local updateTick = GetGameTimer()
+    if (updateTick - lastFuelUpdate) > 2000 then
+        lastFuelUpdate = updateTick
+        lastFuelCheck = math.floor(exports['LegacyFuel']:GetFuel(vehicle))
+    end
+    return lastFuelCheck
+end
+
+local function GetDirectionText(head)
+    if ((head >= 0 and head < 45) or (head >= 315 and head < 360)) then return 'North'
+    elseif (head >= 45 and head < 135) then return 'West'
+    elseif (head >= 135 and head < 225) then return 'South'
+    elseif (head >= 225 and head < 315) then return 'East' end
+end
+
+-- Hud
 CreateThread(function()
+    local wasInVehicle = false
     while true do
-        Wait(500)
-        if LocalPlayer.state['isLoggedIn'] then
+        Wait(50)
+        if LocalPlayer.state.isLoggedIn then
             local show = true
             local player = PlayerPedId()
+            -- player hud
+            local health = GetEntityHealth(player) - 100
+            local armor = GetPedArmour(player)
             local talking = NetworkIsPlayerTalking(PlayerId())
-            local health = GetEntityHealth(player)
-            
-            if LocalPlayer.state['proximity'] ~= nil then
+            local voice = 0
+            if LocalPlayer.state['proximity'] then
                 voice = LocalPlayer.state['proximity'].distance
             end
-            SendNUIMessage({
-                action = 'hudtick',
-                show = show,
-                health = health / 100,
-                armor = GetPedArmour(player) / 100,
-                hunger = hunger / 100,
-                thirst = thirst / 100,
-                stress = stress / 100,
-                voice = voice / 5,
-                talking = talking
+            if IsPauseMenuActive() then
+                show = false
+            end
+            updatePlayerHud({
+                show,
+                health / 100,
+                armor / 100,
+                hunger / 100,
+                thirst / 100,
+                stress / 100,
+                voice / 5,
+                talking
             })
-            DisplayRadar(true)
+            -- vehcle hud
+            local vehicle = GetVehiclePedIsIn(player)
+            if IsPedInAnyVehicle(player) and not IsThisModelABicycle(vehicle) then
+                if not wasInVehicle then
+                    DisplayRadar(true)
+                end
+                wasInVehicle = true
+                local crossroads = getCrossroads(player)
+                updateVehicleHud({
+                    show,
+                    IsPauseMenuActive(),
+                    GetDirectionText(GetEntityHeading(player)),
+                    crossroads[1],
+                    crossroads[2],
+                    seatbeltOn,
+                    cruiseOn,
+                    math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
+                    nos,
+                    getFuelLevel(vehicle),
+                })
+            else
+                if wasInVehicle then
+                    wasInVehicle = false
+                    SendNUIMessage({
+                        action = 'car',
+                        show = false,
+                        seatbelt = false,
+                        cruise = false,
+                    })
+                    seatbeltOn = false
+                    cruiseOn = false
+                end
+                DisplayRadar(false)
+            end
         else
             SendNUIMessage({
                 action = 'hudtick',
                 show = false
             })
             DisplayRadar(false)
+            Wait(500)
         end
     end
 end)
 
--- Raise Minimap
+-- Load Minimap
 CreateThread(function()
     local minimap = RequestScaleformMovie('minimap')
     while not HasScaleformMovieLoaded(minimap) do
         Wait(0)
     end
     
-    Wait(0)
+    Wait(5000)
     SetRadarBigmapEnabled(true, false)
     Wait(0)
     SetRadarBigmapEnabled(false, false)
 end)
 
+-- Money HUD
+RegisterNetEvent('hud:client:ShowAccounts', function(type, amount)
+    if type == 'cash' then
+        SendNUIMessage({
+            action = 'show',
+            type = 'cash',
+            cash = amount
+        })
+    else
+        SendNUIMessage({
+            action = 'show',
+            type = 'bank',
+            bank = amount
+        })
+    end
+end)
 
+RegisterNetEvent('hud:client:OnMoneyChange', function(type, amount, isMinus)
+    QBCore.Functions.GetPlayerData(function(PlayerData)
+        cashAmount = PlayerData.money['cash']
+        bankAmount = PlayerData.money['bank']
+    end)
+    SendNUIMessage({
+        action = 'update',
+        cash = cashAmount,
+        bank = bankAmount,
+        amount = amount,
+        minus = isMinus,
+        type = type
+    })
+end)
 
 -- Stress Gain
 CreateThread(function()-- Speeding
@@ -93,7 +266,7 @@ end)
 
 function IsWhitelistedWeapon()
     local weapon = GetSelectedPedWeapon(PlayerPedId())
-    if weapon ~= nil then
+    if weapon then
         for _, v in pairs(Config.WhitelistedWeapons) do
             if weapon == GetHashKey(v) then
                 return true

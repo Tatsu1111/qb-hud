@@ -1,5 +1,6 @@
 Config = {}
 Config.StressChance = 0.1 -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
+Config.UseMPH = true -- If true speed math will be done as MPH, if false KPH will be used
 Config.MinimumStress = 50 -- Minimum Stress Level For Screen Shaking
 Config.MinimumSpeed = 100 -- Going Over This Speed Will Cause Stress
 
@@ -12,7 +13,7 @@ Config.WhitelistedWeapons = {
 }
 
 Config.Intensity = {
-    ["shake"] = {
+    ['shake'] = {
         [1] = {
             min = 50,
             max = 60,
