@@ -139,7 +139,9 @@
 }
 
 .ui-car-street {
-  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  text-transform: uppercase;
+  font-size: 17px;
   position: absolute;
   bottom: 1.15vh;
   left: 17vw;
