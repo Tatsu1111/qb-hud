@@ -2,7 +2,7 @@
 
 ## Screenshots
 ### On Foot
-![](https://cdn.izmystic.dev/images/pq27dp5h.png)
+![](http://cdn.izmystic.dev/images/ligwgpid.png)
 
 ### In Car
-![](https://cdn.izmystic.dev/images/rcac7j8i.png)
+![](http://cdn.izmystic.dev/images/zdhizta8.png)
