@@ -36,8 +36,8 @@ local function updatePlayerHud(data)
             show = data[1],
             health = data[2],
             armor = data[3],
-            thirst = data[4],
-            hunger = data[5],
+            hunger = data[4],
+            thirst = data[5],
             voice = data[6],
             talking = data[7],
         })
