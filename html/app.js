@@ -101,7 +101,7 @@ const playerHud = {
             health: 0,
             armor: 0,
             hunger: 0,
-            thirst: 0,
+            tirst: 0,
             voice: 0,
             show: false,
             showHealth: true,
@@ -132,7 +132,7 @@ const playerHud = {
             this.thirst = data.thirst;
             this.voice = data.voice;
             if (data.talking) {
-                this.talkingColor = "#ae47ff";
+                this.talkingColor = "#ffff00";
             } else {
                 this.talkingColor = "#ffffff";
             }
@@ -147,12 +147,14 @@ app.mount("#ui-container");
 const vehHud = {
     data() {
         return {
+            nos: 0,
             fuel: 0,
             show: false,
             speed: 0,
             cruise: 0,
             street1: "",
             street2: "",
+            showNos: false,
             seatbelt: 0,
             direction: "",
             cruiseColor: "",
@@ -177,6 +179,7 @@ const vehHud = {
             this.street1 = data.street1;
             this.street2 = data.street2;
             this.fuel = data.fuel;
+            this.nos = data.nos;
             if (data.seatbelt === true) {
                 this.seatbelt = 1;
                 this.seatbeltColor = "#28a745";
@@ -190,6 +193,11 @@ const vehHud = {
             } else {
                 this.cruise = 0;
                 this.cruiseColor = "#D64763";
+            }
+            if (data.nos === 0 || data.nos === undefined) {
+                this.showNos = false;
+            } else {
+                this.showNos = true;
             }
             if (data.isPaused === 1) {
                 this.show = false;

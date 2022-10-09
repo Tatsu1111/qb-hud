@@ -7,7 +7,6 @@
 
 /* Money */
 #money-container {
-  font-family: 'Poppins', sans-serif;
   position: absolute;
   right: 2vw;
   top: 2vh;
@@ -86,7 +85,9 @@
   display: none;
 }
 
-.ui-car-speed, .ui-car-fuel, .ui-car-nos {
+.ui-car-speed,
+.ui-car-fuel,
+.ui-car-nos {
   font-family: 'Poppins', sans-serif;
   text-transform: uppercase;
   font-size: 17px;
@@ -117,7 +118,8 @@
   font-size: 10px;
 }
 
-.speed-text, .fuel-text {
+.speed-text,
+.fuel-text {
   color: #ededed;
   font-size: 18px;
 }
@@ -153,7 +155,8 @@
   color: rgba(232, 185, 14, 1.0);
 }
 
-.ui-car-seatbelt, .ui-car-cruise {
+.ui-car-seatbelt,
+.ui-car-cruise {
   font-size: 15px;
   font-weight: bold;
   position: absolute;

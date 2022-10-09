@@ -5,7 +5,6 @@
     <title>mystic-hud</title>
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quasar@2.0.4/dist/quasar.prod.css">
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css">
     <link rel="stylesheet" href="style.css">
 
     <!-- JavaScript -->
@@ -47,9 +46,6 @@
                     <div class="smallbar" v-if="showThirst">
                         <q-linear-progress size="15px" show-value :value="thirst" color="thirst" />
                     </div>
-                    <div class="smallbar" v-if="showStress">
-                        <q-linear-progress size="15px" show-value :value="stress" color="stress" />
-                    </div>
                     <div class="smallbar" v-if="showVoice">
                         <q-linear-progress size="15px" show-value :value="voice" :style="{color: talkingColor}" />
                     </div>
@@ -58,11 +54,11 @@
         </div>
         <div id="veh-container">
             <div v-show="show">
-                <div class="ui-car-seatbelt"><span class="seatbelt-text" :style="{color: seatbeltColor}">SEATBELT</span></div>
-                <div class="ui-car-cruise"><span class="cruise-text" :style="{color: cruiseColor}">CRUISE</span></div>
-                <div class="ui-car-speed"><span class="speed-text">{{speed}}</span> <span class="speed-type">MPH</span></div>
-                <div class="ui-car-fuel"><span class="fuel-text">{{fuel}}</span> <span class="fuel-label">FUEL</span></div>
-                <div class="ui-car-nos" v-if="showNos"><span class="nos-text">{{nos}}</span> <span class="nos-label">NOS</span></div>
+                <div class="ui-car-seatbelt"> <span class="seatbelt-text" :style="{color: seatbeltColor}">SEATBELT</span> </div>
+                <div class="ui-car-cruise"> <span class="cruise-text" :style="{color: cruiseColor}">CRUISE</span></div>
+                <div class="ui-car-speed"> <span class="speed-text">{{speed}}</span> <span class="speed-type">MPH</span> </div>
+                <div class="ui-car-fuel"> <span class="fuel-text">{{fuel}}</span> <span class="fuel-label">FUEL</span> </div>
+                <div class="ui-car-nos" v-if="showNos"> <span class="nos-text">{{nos}}</span> <span class="nos-label">NOS</span> </div>
                 <div class="ui-car-street">
                     {{direction}} | {{street1}} | {{street2}}
                 </div>

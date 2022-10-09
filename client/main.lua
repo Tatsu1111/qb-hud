@@ -1,25 +1,49 @@
-local config = Config
-local speedMultiplier = config.UseMPH and 2.236936 or 3.6
+if Config.Framework == 'es_extended' then
+    ESX = exports['es_extended']:getSharedObject()
+elseif Config.Framework == 'qb-core' then
+    QBCore = exports['qb-core']:GetCoreObject()
+end
+
+local loggedIn = Config.Framework == 'es_extended' and ESX.IsPlayerLoaded() or Config.Framework == 'qb-core' and LocalPlayer.state.isLoggedIn
+
+local speedMultiplier = Config.UseMPH and 2.23694 or 3.6
+local seatbeltOn = false
+local cruiseOn = false
+local nos = 0
 local hunger = 100
 local thirst = 100
 local cashAmount = 0
 local bankAmount = 0
 
-RegisterNetEvent('esx_status:onTick', function()
-    TriggerEvent('esx_status:getStatus', 'hunger', function(status)
-        hunger= status.val / 10000
+if Config.Framework == 'es_extended' then
+    RegisterNetEvent('esx_status:onTick', function()
+        TriggerEvent('esx_status:getStatus', 'hunger', function(status)
+            hunger = status.val / 10000
+        end)
+        TriggerEvent('esx_status:getStatus', 'thirst', function(status)
+            thirst = status.val / 10000
+        end)
     end)
-    TriggerEvent('esx_status:getStatus', 'thirst', function(status)
-        thirst = status.val / 10000
+elseif Config.Framework == 'qb-core' then
+    RegisterNetEvent('hud:client:UpdateNeeds', function(newHunger, newThirst) -- Triggered in qb-core
+        hunger = newHunger
+        thirst = newThirst
     end)
-end)
 
-local voiceMode = 0.4
-AddEventHandler('pma-voice:setTalkingMode', function(newTalkingRange)
-    voiceMode = newTalkingRange * 0.3 + 0.1
-end)
+    RegisterNetEvent('seatbelt:client:ToggleSeatbelt', function() -- Triggered in smallresources
+        seatbeltOn = not seatbeltOn
+    end)
 
-local prevPlayerStats = {nil, nil, nil, nil, nil, nil, nil}
+    RegisterNetEvent('seatbelt:client:ToggleCruise', function() -- Triggered in smallresources
+        cruiseOn = not cruiseOn
+    end)
+
+    RegisterNetEvent('hud:client:UpdateNitrous', function(hasNitro, nitroLevel, bool)
+        nos = nitroLevel
+    end)
+end
+
+local prevPlayerStats = { nil, nil, nil, nil, nil, nil, nil, nil }
 
 local function updatePlayerHud(data)
     local shouldUpdate = false
@@ -44,7 +68,7 @@ local function updatePlayerHud(data)
     end
 end
 
-local prevVehicleStats = {nil, nil, nil, nil, nil, nil, nil, nil, nil}
+local prevVehicleStats = { nil, nil, nil, nil, nil, nil, nil, nil, nil, nil }
 
 local function updateVehicleHud(data)
     local shouldUpdate = false
@@ -63,7 +87,8 @@ local function updateVehicleHud(data)
             seatbelt = data[6],
             cruise = data[7],
             speed = data[8],
-            fuel = data[9],
+            nos = data[9],
+            fuel = data[10],
         })
     end
 end
@@ -77,7 +102,7 @@ local function getCrossroads(player)
         local pos = GetEntityCoords(player)
         local street1, street2 = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
         lastCrossroadUpdate = updateTick
-        lastCrossroadCheck = {GetStreetNameFromHashKey(street1), GetStreetNameFromHashKey(street2)}
+        lastCrossroadCheck = { GetStreetNameFromHashKey(street1), GetStreetNameFromHashKey(street2) }
     end
     return lastCrossroadCheck
 end
@@ -106,13 +131,17 @@ CreateThread(function()
     local wasInVehicle = false
     while true do
         Wait(50)
-        if LocalPlayer.state.isLoggedIn then
+        if loggedIn then
             local show = true
             local player = PlayerPedId()
             -- player hud
             local health = GetEntityHealth(player) - 100
             local armor = GetPedArmour(player)
             local talking = NetworkIsPlayerTalking(PlayerId())
+            local voice = 0
+            if LocalPlayer.state['proximity'] then
+                voice = LocalPlayer.state['proximity'].distance
+            end
             if IsPauseMenuActive() then
                 show = false
             end
@@ -122,7 +151,7 @@ CreateThread(function()
                 armor / 100,
                 hunger / 100,
                 thirst / 100,
-                voiceMode,
+                voice / 5,
                 talking
             })
             -- vehcle hud
@@ -142,6 +171,7 @@ CreateThread(function()
                     seatbeltOn,
                     cruiseOn,
                     math.ceil(GetEntitySpeed(vehicle) * speedMultiplier),
+                    nos,
                     getFuelLevel(vehicle),
                 })
             else
@@ -172,8 +202,10 @@ end)
 -- Load Minimap
 CreateThread(function()
     local minimap = RequestScaleformMovie('minimap')
-    while not HasScaleformMovieLoaded(minimap) do Wait(1) end
-    
+    while not HasScaleformMovieLoaded(minimap) do
+        Wait(0)
+    end
+
     Wait(5000)
     SetRadarBigmapEnabled(true, false)
     Wait(0)
@@ -198,7 +230,7 @@ RegisterNetEvent('hud:client:ShowAccounts', function(type, amount)
 end)
 
 RegisterNetEvent('hud:client:OnMoneyChange', function(type, amount, isMinus)
-    HRPCore.Functions.GetPlayerData(function(PlayerData)
+    QBCore.Functions.GetPlayerData(function(PlayerData)
         cashAmount = PlayerData.money['cash']
         bankAmount = PlayerData.money['bank']
     end)
