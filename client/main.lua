@@ -1,10 +1,10 @@
-if Config.Framework == 'es_extended' then
+local esx = GetResourceState('es_extended') == 'started'
+local qb = GetResourceState('qb-core') == 'started'
+if esx then
     ESX = exports['es_extended']:getSharedObject()
-elseif Config.Framework == 'qb-core' then
+elseif qb then
     QBCore = exports['qb-core']:GetCoreObject()
 end
-
-local loggedIn = Config.Framework == 'es_extended' and ESX.IsPlayerLoaded() or Config.Framework == 'qb-core' and LocalPlayer.state.isLoggedIn
 
 local speedMultiplier = Config.UseMPH and 2.23694 or 3.6
 local seatbeltOn = false
@@ -15,7 +15,7 @@ local thirst = 100
 local cashAmount = 0
 local bankAmount = 0
 
-if Config.Framework == 'es_extended' then
+if esx then
     RegisterNetEvent('esx_status:onTick', function()
         TriggerEvent('esx_status:getStatus', 'hunger', function(status)
             hunger = status.val / 10000
@@ -24,17 +24,17 @@ if Config.Framework == 'es_extended' then
             thirst = status.val / 10000
         end)
     end)
-elseif Config.Framework == 'qb-core' then
-    RegisterNetEvent('hud:client:UpdateNeeds', function(newHunger, newThirst) -- Triggered in qb-core
+elseif qb then
+    RegisterNetEvent('hud:client:UpdateNeeds', function(newHunger, newThirst)
         hunger = newHunger
         thirst = newThirst
     end)
 
-    RegisterNetEvent('seatbelt:client:ToggleSeatbelt', function() -- Triggered in smallresources
+    RegisterNetEvent('seatbelt:client:ToggleSeatbelt', function()
         seatbeltOn = not seatbeltOn
     end)
 
-    RegisterNetEvent('seatbelt:client:ToggleCruise', function() -- Triggered in smallresources
+    RegisterNetEvent('seatbelt:client:ToggleCruise', function()
         cruiseOn = not cruiseOn
     end)
 
@@ -131,6 +131,7 @@ CreateThread(function()
     local wasInVehicle = false
     while true do
         Wait(50)
+        local loggedIn = esx and ESX.IsPlayerLoaded() or qb and LocalPlayer.state.isLoggedIn
         if loggedIn then
             local show = true
             local player = PlayerPedId()
